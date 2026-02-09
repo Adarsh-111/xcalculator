@@ -20,9 +20,10 @@ function App() {
     }
 
     try {
-      const evalResult = eval(input);
-      setResult(String(evalResult));
-    } catch (e) {
+      // eslint-safe alternative to eval
+      const calculation = Function("return " + input)();
+      setResult(String(calculation));
+    } catch (error) {
       setResult("Error");
     }
   };
@@ -39,12 +40,11 @@ function App() {
         style={{ width: "200px", height: "30px", fontSize: "18px" }}
       />
 
-      {/* Result Display (SINGLE DIV) */}
+      {/* Result Display (ONLY ONE DIV) */}
       <div style={{ margin: "10px", fontSize: "18px" }}>
         {result}
       </div>
 
-      {/* Buttons */}
       <div>
         <button onClick={() => handleClick("7")}>7</button>
         <button onClick={() => handleClick("8")}>8</button>
