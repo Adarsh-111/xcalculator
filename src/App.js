@@ -20,37 +20,90 @@ function App() {
     }
 
     try {
-      // Manual calculation parser
-      const sanitized = input.replace(/\s/g, '');
-      const calculated = evaluateExpression(sanitized);
+      const calculated = parseAndCalculate(input);
       setResult(String(calculated));
     } catch (error) {
       setResult("Error");
     }
   };
 
-  // Simple expression evaluator
-  const evaluateExpression = (expr) => {
-    // Handle multiplication and division first
-    let result = expr.replace(/(\d+\.?\d*)\s*([*/])\s*(\d+\.?\d*)/g, (match, a, op, b) => {
-      return op === '*' ? parseFloat(a) * parseFloat(b) : parseFloat(a) / parseFloat(b);
+  // Safe calculator without eval
+  const parseAndCalculate = (expression) => {
+    // Remove spaces
+    let expr = expression.replace(/\s/g, '');
+    
+    // Split by + and - (but keep the operators)
+    const terms = [];
+    let currentTerm = '';
+    let currentOp = '+';
+    
+    for (let i = 0; i < expr.length; i++) {
+      const char = expr[i];
+      if ((char === '+' || char === '-') && i > 0 && expr[i-1] !== '*' && expr[i-1] !== '/') {
+        terms.push({ value: currentTerm, op: currentOp });
+        currentOp = char;
+        currentTerm = '';
+      } else {
+        currentTerm += char;
+      }
+    }
+    terms.push({ value: currentTerm, op: currentOp });
+    
+    // Calculate each term (handle * and /)
+    const calculatedTerms = terms.map(term => {
+      let value = calculateMultDiv(term.value);
+      return { value, op: term.op };
     });
     
-    // Keep evaluating until no more */ operations
-    while (/\d+\.?\d*\s*[*/]\s*\d+\.?\d*/.test(result)) {
-      result = result.replace(/(\d+\.?\d*)\s*([*/])\s*(\d+\.?\d*)/g, (match, a, op, b) => {
-        return op === '*' ? parseFloat(a) * parseFloat(b) : parseFloat(a) / parseFloat(b);
-      });
+    // Calculate final result (handle + and -)
+    let finalResult = 0;
+    calculatedTerms.forEach(term => {
+      if (term.op === '+') {
+        finalResult += term.value;
+      } else if (term.op === '-') {
+        finalResult -= term.value;
+      }
+    });
+    
+    return finalResult;
+  };
+
+  const calculateMultDiv = (expr) => {
+    const tokens = [];
+    let currentNumber = '';
+    
+    for (let i = 0; i < expr.length; i++) {
+      const char = expr[i];
+      if (char === '*' || char === '/') {
+        tokens.push(parseFloat(currentNumber));
+        tokens.push(char);
+        currentNumber = '';
+      } else {
+        currentNumber += char;
+      }
+    }
+    tokens.push(parseFloat(currentNumber));
+    
+    // Process * and / from left to right
+    while (tokens.length > 1) {
+      let found = false;
+      for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i] === '*') {
+          const result = tokens[i - 1] * tokens[i + 1];
+          tokens.splice(i - 1, 3, result);
+          found = true;
+          break;
+        } else if (tokens[i] === '/') {
+          const result = tokens[i - 1] / tokens[i + 1];
+          tokens.splice(i - 1, 3, result);
+          found = true;
+          break;
+        }
+      }
+      if (!found) break;
     }
     
-    // Handle addition and subtraction
-    while (/[+-]/.test(result) && result.match(/\d/)) {
-      result = result.replace(/(-?\d+\.?\d*)\s*([+\-])\s*(\d+\.?\d*)/g, (match, a, op, b) => {
-        return op === '+' ? parseFloat(a) + parseFloat(b) : parseFloat(a) - parseFloat(b);
-      });
-    }
-    
-    return parseFloat(result);
+    return tokens[0];
   };
 
   return (
