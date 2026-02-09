@@ -1,23 +1,77 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
 
 function App() {
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState("");
+
+  const handleClick = (value) => {
+    setInput((prev) => prev + value);
+  };
+
+  const handleClear = () => {
+    setInput("");
+    setResult("");
+  };
+
+  const handleEqual = () => {
+    if (input === "") {
+      setResult("Error");
+      return;
+    }
+
+    try {
+      const evalResult = eval(input);
+      setResult(String(evalResult));
+    } catch (e) {
+      setResult("Error");
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ textAlign: "center", marginTop: "40px" }}>
+      <h1>React Calculator</h1>
+
+      {/* Input Field */}
+      <input
+        type="text"
+        value={input}
+        readOnly
+        style={{ width: "200px", height: "30px", fontSize: "18px" }}
+      />
+
+      {/* Result Display (SINGLE DIV) */}
+      <div style={{ margin: "10px", fontSize: "18px" }}>
+        {result}
+      </div>
+
+      {/* Buttons */}
+      <div>
+        <button onClick={() => handleClick("7")}>7</button>
+        <button onClick={() => handleClick("8")}>8</button>
+        <button onClick={() => handleClick("9")}>9</button>
+        <button onClick={() => handleClick("+")}>+</button>
+      </div>
+
+      <div>
+        <button onClick={() => handleClick("4")}>4</button>
+        <button onClick={() => handleClick("5")}>5</button>
+        <button onClick={() => handleClick("6")}>6</button>
+        <button onClick={() => handleClick("-")}>-</button>
+      </div>
+
+      <div>
+        <button onClick={() => handleClick("1")}>1</button>
+        <button onClick={() => handleClick("2")}>2</button>
+        <button onClick={() => handleClick("3")}>3</button>
+        <button onClick={() => handleClick("*")}>*</button>
+      </div>
+
+      <div>
+        <button onClick={handleClear}>C</button>
+        <button onClick={() => handleClick("0")}>0</button>
+        <button onClick={handleEqual}>=</button>
+        <button onClick={() => handleClick("/")}>/</button>
+      </div>
     </div>
   );
 }
